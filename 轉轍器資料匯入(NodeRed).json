@@ -1,0 +1,344 @@
+[
+    {
+        "id": "96b969b1e379a583",
+        "type": "tab",
+        "label": "轉轍器資料匯入",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "0414ca1f94195f08",
+        "type": "comment",
+        "z": "96b969b1e379a583",
+        "name": "製作清單並執行解析檔案",
+        "info": "",
+        "x": 190,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "82734369de4b4429",
+        "type": "inject",
+        "z": "96b969b1e379a583",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 150,
+        "y": 120,
+        "wires": [
+            [
+                "a9f42a7f5c8ddd43"
+            ]
+        ]
+    },
+    {
+        "id": "a9f42a7f5c8ddd43",
+        "type": "exec",
+        "z": "96b969b1e379a583",
+        "command": "ls /home/maintain/Data/Pointswitch  > /home/maintain/Data/Pointswitch_Filelist.csv",
+        "addpay": "",
+        "append": "",
+        "useSpawn": "false",
+        "timer": "",
+        "winHide": false,
+        "oldrc": false,
+        "name": "製作檔案列表",
+        "x": 360,
+        "y": 120,
+        "wires": [
+            [],
+            [],
+            [
+                "5c998e0f78c314ae"
+            ]
+        ]
+    },
+    {
+        "id": "5c998e0f78c314ae",
+        "type": "switch",
+        "z": "96b969b1e379a583",
+        "name": "執行成功",
+        "property": "payload.code",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "0",
+                "vt": "num"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 580,
+        "y": 120,
+        "wires": [
+            [
+                "b10fdc87940115ad"
+            ]
+        ]
+    },
+    {
+        "id": "b10fdc87940115ad",
+        "type": "file in",
+        "z": "96b969b1e379a583",
+        "name": "檔案列表",
+        "filename": "/home/maintain/Data/Pointswitch_Filelist.csv",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 760,
+        "y": 120,
+        "wires": [
+            [
+                "b7f6a1055e20c5d9"
+            ]
+        ]
+    },
+    {
+        "id": "b7f6a1055e20c5d9",
+        "type": "csv",
+        "z": "96b969b1e379a583",
+        "name": "",
+        "sep": ",",
+        "hdrin": "",
+        "hdrout": "none",
+        "multi": "mult",
+        "ret": "\\n",
+        "temp": "",
+        "skip": "0",
+        "strings": true,
+        "include_empty_strings": "",
+        "include_null_values": "",
+        "x": 930,
+        "y": 120,
+        "wires": [
+            [
+                "acb11a1a86394213"
+            ]
+        ]
+    },
+    {
+        "id": "acb11a1a86394213",
+        "type": "switch",
+        "z": "96b969b1e379a583",
+        "name": "清單有內容",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "nempty"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 1110,
+        "y": 120,
+        "wires": [
+            [
+                "f68b72a109a1d029"
+            ]
+        ]
+    },
+    {
+        "id": "f68b72a109a1d029",
+        "type": "function",
+        "z": "96b969b1e379a583",
+        "name": "檔案清單轉物件",
+        "func": "msg.Files = msg.payload;\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 240,
+        "y": 220,
+        "wires": [
+            [
+                "ee3fe9c3d3818334"
+            ]
+        ]
+    },
+    {
+        "id": "ee3fe9c3d3818334",
+        "type": "array-loop",
+        "z": "96b969b1e379a583",
+        "name": "重複清單內容",
+        "key": "fileKey",
+        "keyType": "msg",
+        "reset": false,
+        "resetValue": "value-null",
+        "array": "Files",
+        "arrayType": "msg",
+        "x": 480,
+        "y": 220,
+        "wires": [
+            [],
+            [
+                "15fda8699798d478"
+            ]
+        ]
+    },
+    {
+        "id": "15fda8699798d478",
+        "type": "function",
+        "z": "96b969b1e379a583",
+        "name": "組合資料檔案名稱",
+        "func": "// 檔名 P2103R_20211001090714.csv\nmsg.myDate = msg.Files[msg.fileKey].col1.substr(7,8);\nmsg.perHours = msg.Files[msg.fileKey].col1.substr(15,2);\nmsg.perMinutes = msg.Files[msg.fileKey].col1.substr(17,2);\nmsg.perSeconds = msg.Files[msg.fileKey].col1.substr(19,2);\nmsg.Machine = msg.Files[msg.fileKey].col1.substr(0,5);\nmsg.Direction = msg.Files[msg.fileKey].col1.substr(5,1);\nmsg.filename = \"/home/maintain/Data/Pointswitch/\" + msg.Files[msg.fileKey].col1;\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 290,
+        "y": 320,
+        "wires": [
+            [
+                "ee3fe9c3d3818334",
+                "0a7dae46a87783a9"
+            ]
+        ]
+    },
+    {
+        "id": "0a7dae46a87783a9",
+        "type": "file in",
+        "z": "96b969b1e379a583",
+        "name": "",
+        "filename": "",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 520,
+        "y": 320,
+        "wires": [
+            [
+                "7a5e80fbb7f05b6a"
+            ]
+        ]
+    },
+    {
+        "id": "7a5e80fbb7f05b6a",
+        "type": "csv",
+        "z": "96b969b1e379a583",
+        "name": "",
+        "sep": ",",
+        "hdrin": true,
+        "hdrout": "none",
+        "multi": "mult",
+        "ret": "\\n",
+        "temp": "",
+        "skip": "0",
+        "strings": true,
+        "include_empty_strings": "",
+        "include_null_values": "",
+        "x": 690,
+        "y": 320,
+        "wires": [
+            [
+                "0caafadcb114b2f6"
+            ]
+        ]
+    },
+    {
+        "id": "0caafadcb114b2f6",
+        "type": "function",
+        "z": "96b969b1e379a583",
+        "name": "組合SQL",
+        "func": "msg.topic = \"\";\nfor (var i = 0; i < msg.payload.length; i++){\n    msg.topic += \"REPLACE INTO `pointswitch_rawdata` (`Datatime`, `dt_ms_no`, `machine`, `direction`, `NLR`, `RLR`, `FOCR`, `NWR`, `RWR`, `NWKR`, `RWKR`, `SNWKR`, `SRWKR`, `NCurrent`, `RCurrent`, `WRVT`, `TURNCOUNT`, `ALARMCODE`, `IDX_Date`, `IDX_Week` ) VALUES ( STR_TO_DATE('\" + msg.payload[i].DataTime + \"', '%Y/%m/%d %H:%i:%s'), \" + i + \", '\" + msg.Machine + \"', '\" + msg.Direction + \"', \" + msg.payload[i].NLR + \", \" + msg.payload[i].RLR + \", \" + msg.payload[i].FOCR + \", \" + msg.payload[i].NWR + \", \" + msg.payload[i].RWR + \", \" + msg.payload[i].NWKR + \", \" + msg.payload[i].RWKR + \", \" + msg.payload[i].SNWKR + \", \" + msg.payload[i].SRWKR + \", \" + msg.payload[i].NCurrent + \", \" + msg.payload[i].RCurrent + \", \" + msg.payload[i].WRVT + \", \" + msg.payload[0].TURNCOUNT + \", \" + msg.payload[0].ALARMCODE + \",STR_TO_DATE('\" + msg.payload[i].DataTime + \"','%Y/%m/%d %H:%i:%s'),DATE_FORMAT(STR_TO_DATE('\" + msg.payload[i].DataTime + \"','%Y/%m/%d %H:%i:%s'),'%w'));\";\n}\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 880,
+        "y": 320,
+        "wires": [
+            [
+                "a5673fb1c649096c"
+            ]
+        ]
+    },
+    {
+        "id": "a5673fb1c649096c",
+        "type": "mysql",
+        "z": "96b969b1e379a583",
+        "mydb": "dd0b80e2c6feafd2",
+        "name": "DB",
+        "x": 1050,
+        "y": 320,
+        "wires": [
+            [
+                "34d13e82e8a638b8"
+            ]
+        ]
+    },
+    {
+        "id": "34d13e82e8a638b8",
+        "type": "function",
+        "z": "96b969b1e379a583",
+        "name": "準備刪檔",
+        "func": "msg.delFile = \"rm \" + msg.filename;\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 260,
+        "y": 420,
+        "wires": [
+            [
+                "4c702cf5d5d47d15"
+            ]
+        ]
+    },
+    {
+        "id": "4c702cf5d5d47d15",
+        "type": "exec",
+        "z": "96b969b1e379a583",
+        "command": "",
+        "addpay": "delFile",
+        "append": "",
+        "useSpawn": "false",
+        "timer": "",
+        "winHide": false,
+        "oldrc": false,
+        "name": "刪除檔案",
+        "x": 460,
+        "y": 420,
+        "wires": [
+            [],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "dd0b80e2c6feafd2",
+        "type": "MySQLdatabase",
+        "name": "GrafanaCIB",
+        "host": "127.0.0.1",
+        "port": "3306",
+        "db": "grafana_cib",
+        "tz": "",
+        "charset": "UTF8"
+    }
+]

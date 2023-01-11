@@ -1,0 +1,13 @@
+# Common Parameters
+File:
+  file_type: [.csv]
+  download_path: ./Pointswitch
+
+
+# Serial Parameters
+Serial:
+  COM: COM3
+  baudrate: 115200
+  #Mode 1 = Send, 2 = Read
+  Mode: 1
+  Conform_timeout: 20
